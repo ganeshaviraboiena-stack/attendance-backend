@@ -1,5 +1,7 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+const bcrypt =
+  require("bcryptjs");
 
 const authenticateWithIMAP = require(
   "../utils/imapAuth"
@@ -55,11 +57,62 @@ const login = async (req, res) => {
       });
     }
 
-    const imapResult =
-      await authenticateWithIMAP(
-        email,
-        password
-      );
+   
+
+// Check Super Admin First
+const superAdmin =
+  await User.findOne({
+    email: email.toLowerCase(),
+    role: "superadmin",
+  });
+
+if (superAdmin) {
+  const isMatch =
+    await bcrypt.compare(
+      password,
+      superAdmin.password
+    );
+
+  if (!isMatch) {
+    return res.status(401).json({
+      success: false,
+      message:
+        "Invalid email or password",
+    });
+  }
+
+  const token = jwt.sign(
+    {
+      id: superAdmin._id,
+      role: superAdmin.role,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn:
+        process.env.JWT_EXPIRE,
+    }
+  );
+
+  return res.status(200).json({
+    success: true,
+    message:
+      "Super Admin Login Successful",
+    token,
+    user: {
+      id: superAdmin._id,
+      name: superAdmin.name,
+      email: superAdmin.email,
+      role: superAdmin.role,
+    },
+  });
+}
+
+// Normal IMAP Login Below
+const imapResult =
+  await authenticateWithIMAP(
+    email,
+    password
+  );
 
     if (!imapResult.success) {
       return res.status(401).json({

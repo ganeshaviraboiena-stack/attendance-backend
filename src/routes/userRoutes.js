@@ -1,6 +1,7 @@
 const express = require("express");
 
 const {
+    getAllEmployeesPublic,
   getAllAdmins,
   getAllEmployees,
   getEmployeeById,
@@ -13,6 +14,11 @@ const auth = require("../middleware/auth");
 const roleCheck = require("../middleware/roleCheck");
 
 const router = express.Router();
+
+router.get(
+  "/employees/public",
+  getAllEmployeesPublic
+);
 
 router.get(
   "/admins",

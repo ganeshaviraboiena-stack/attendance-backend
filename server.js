@@ -8,6 +8,9 @@ const authRoutes = require("./src/routes/authRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const attendanceRoutes = require("./src/routes/attendanceRoutes");
 const leaveRoutes = require("./src/routes/leaveRoutes");
+const superAdminRoutes = require(
+  "./src/routes/superAdminRoutes"
+);
 
 const app = express();
 
@@ -28,6 +31,10 @@ app.get("/", (req, res) => {
 
 // API Routes
 app.use("/api/v1/auth", authRoutes);
+app.use(
+  "/api/v1/superadmin",
+  superAdminRoutes
+);
 
 app.use("/api/v1/users", userRoutes);
 
