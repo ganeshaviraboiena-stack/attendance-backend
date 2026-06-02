@@ -13,7 +13,6 @@ const {
   getDistanceMeters,
 } = require("../utils/locationHelper");
 
-// CHECK IN
 const checkIn = async (req, res) => {
   try {
     const { locationType, lat, lng } =
@@ -35,10 +34,52 @@ const checkIn = async (req, res) => {
       ] ||
       req.socket.remoteAddress;
 
-    if (
-      currentTime <
+    console.log(
+      "Current Time:",
+      currentTime
+    );
+    console.log(
+      "CHECKIN_START:",
       process.env.CHECKIN_START
+    );
+    console.log(
+      "CHECKIN_END:",
+      process.env.CHECKIN_END
+    );
+    console.log(
+      "WORK_START:",
+      process.env.WORK_START
+    );
+
+    const currentMoment =
+      moment(
+        currentTime,
+        "HH:mm"
+      );
+
+    const checkinStart =
+      moment(
+        process.env
+          .CHECKIN_START,
+        "HH:mm"
+      );
+
+    const checkinEnd =
+      moment(
+        process.env
+          .CHECKIN_END,
+        "HH:mm"
+      );
+
+    if (
+      currentMoment.isBefore(
+        checkinStart
+      )
     ) {
+      console.log(
+        "BLOCKED - Too Early"
+      );
+
       return res.status(400).json({
         success: false,
         message:
@@ -47,15 +88,24 @@ const checkIn = async (req, res) => {
     }
 
     if (
-      currentTime >
-      process.env.CHECKIN_END
+      currentMoment.isAfter(
+        checkinEnd
+      )
     ) {
+      console.log(
+        "BLOCKED - Late Check In"
+      );
+
       return res.status(400).json({
         success: false,
         message:
           "Late check-in not allowed",
       });
     }
+
+    console.log(
+      "ALLOWED - Time Validation Passed"
+    );
 
     if (
       !["WFO", "WFH"].includes(
@@ -119,6 +169,11 @@ const checkIn = async (req, res) => {
               .OFFICE_LONG
           )
         );
+
+      console.log(
+        "Distance From Office:",
+        distance
+      );
 
       if (distance > 200) {
         return res.status(400).json({
@@ -184,6 +239,11 @@ const checkIn = async (req, res) => {
       data: attendance,
     });
   } catch (error) {
+    console.error(
+      "Check In Error:",
+      error
+    );
+
     res.status(500).json({
       success: false,
       message:
